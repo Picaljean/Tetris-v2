@@ -18,6 +18,10 @@ screen::screen(int w,int h,string icone,string back_ground):width(w),height(h){
   SDL_WM_SetCaption("Tetris", NULL);
 }
 
+void screen::resize(){
+  scr = SDL_SetVideoMode(width+width/2,height,32,SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);
+}
+
 void screen::draw_rect(int x,int y,int w, int h,char c,SDL_Surface * s){
   int r=0;
   int g=0;

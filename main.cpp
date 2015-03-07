@@ -204,6 +204,9 @@ bool play(string playername){
 	{
 	case SDL_QUIT:
 	  return false;
+	case SDL_VIDEORESIZE:
+	  screen_display.resize();
+	  break;
 	case SDL_MOUSEMOTION:{
 	  screen_display.setXcursor(event.motion.x);
 	  screen_display.setYcursor(event.motion.y);

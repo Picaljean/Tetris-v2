@@ -30,6 +30,7 @@ public:
   void write_text(string,SDL_Color,int,int,int,string);
   int getHeight();
   int getWidth();
+  void resize();
   void blit();
 };
 #endif
