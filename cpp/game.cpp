@@ -3,6 +3,8 @@
 #include <sstream>
 #include <cstdio>
 #include <SDL/SDL.h>
+#include <vector>
+#include <algorithm>
 using namespace std;
 
 Game::Game(string name,int level,int h, int w,int s):p(name),currentlevel(level),gridwidth(w),gridheight(h),sizecell(s),nbblocs(0),lines(0){
@@ -26,12 +28,16 @@ void Game::save_score(string fileoutput){
   bool done=false;
   string name;
   int score;
+  int highscore=-1;
   if(file){
     while(true){
       file>>name;
       file>>score;
       if(file.eof()){
 	break;
+      }
+      if(score>highscore){
+	highscore=score;
       }
       if(name==p.getName() && score<p.getScore()){
 	tmp<<p.getName()<<" "<<p.getScore()<<"\n";
@@ -43,16 +49,19 @@ void Game::save_score(string fileoutput){
 	tmp<<name<<" "<<score<<"\n";
       }
     }
-  }else{
+  }else{ // save file doesn't exist
     done=true;
     tmp<<p.getName()<<" "<<p.getScore()<<"\n";
   }
-  if(!done){
+  if(!done){ // appends the new score to the file
     tmp<<p.getName()<<" "<<p.getScore()<<"\n";
   }
   file.close();
   tmp.close();
   rename("tmp.txt",fileoutput.c_str());
+  if(highscore <= p.getScore()){
+    cout<<"New Highscore !"<<endl;
+  }
   cout<<p.getName()<<" score : "<<p.getScore()<<endl;
 }
 

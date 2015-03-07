@@ -4,9 +4,16 @@
 #include <fstream>
 #include "hpp/game.hpp"
 #include "hpp/factory.hpp"
+#include "hpp/menu.hpp"
 #include <map>
 #define SIZE_CELL 40
 using namespace std;
+
+enum MENU{
+  MENU_GAME,
+  MENU_SCORES,
+  MENU_QUIT
+};
 
 void high_scores(ostream &o){
   fstream file("save/save.txt",ios::in);
@@ -30,6 +37,16 @@ string concat(string text,int integer){
   tmp<<integer;
   txt+=tmp.str();
   return txt;
+}
+
+void init(){
+  SDL_Init(SDL_INIT_VIDEO);
+  TTF_Init();
+}
+
+void quit(){
+  TTF_Quit();
+  SDL_Quit();
 }
 
 void key_management(Game & g,Sound & game_sound,Factory & f){
@@ -119,7 +136,7 @@ void key_management(Game & g,Sound & game_sound,Factory & f){
   }
 }
 
-bool SDL(string playername){
+bool play(string playername){
   SDL_Event event;
   bool go=true;
   string windowname;
@@ -294,7 +311,8 @@ bool SDL(string playername){
   return EXIT_SUCCESS;
 }
 
-int main(){
+/*int main(){
+  init();
   int choice;
   string playername;
   do{
@@ -307,6 +325,82 @@ int main(){
       cin>>playername;
     }
   }while(choice!=2);
-  SDL(playername);
+  play(playername);
+  quit();
+  return 0;
+}*/
+
+int main(){
+  init();
+  SDL_Color hover = {26,62,137};
+  SDL_Color normal = {150,150,150};
+  SDL_Event event;
+
+  int last_time = 0, actual_time = 0;
+  int interval = 100;
+
+  string env="SDL_VIDEO_CENTERED=1";
+  putenv((char *)env.c_str());
+
+  Menu m(22,"font/ocraext.ttf","image/window_icone.bmp","image/menu.bmp",hover,normal,640,480);
+  m.add_element("New Game");
+  m.add_element("High Scores");
+  m.add_element("Quit");
+  bool go = true;
+  int choice;
+  string playername;
+
+  while(go){
+    while(SDL_PollEvent(&event)){
+      switch(event.type){
+      case SDL_QUIT:
+	go = false;
+	break;
+      case SDL_KEYDOWN:
+	switch(event.key.keysym.sym){
+
+	case SDLK_UP:
+	  m.move_up();
+	  break;
+      
+	case SDLK_DOWN:
+	  m.move_down();
+	  break;
+      
+	case SDLK_RETURN:
+	  choice=m.getCurrentIndex();
+	  go=false;
+	  break;
+
+	case SDLK_ESCAPE:
+	  go = false;
+	  break;
+	}
+	break;
+      }
+    }
+    m.display();
+    m.flip();
+    if(actual_time - last_time < interval){ // timer for display
+      SDL_Delay(interval - (actual_time - last_time));
+    }
+    last_time = actual_time;   
+  }
+  switch(choice){
+
+  case MENU_GAME:
+    cout<<"Quel est votre nom ?"<<endl;
+    cin>>playername;
+    play(playername);
+    break;
+
+  case MENU_SCORES:
+    high_scores(cout);
+    break;
+
+  case MENU_QUIT:
+    break;
+  }
+  quit();
   return 0;
 }

@@ -3,14 +3,8 @@
 using namespace std;
 
 screen::screen(int w,int h,string icone,string back_ground):width(w),height(h){
-  if(SDL_Init(SDL_INIT_VIDEO)==-1){
-    cerr<<"Error SDL Initialisation : \n"<<SDL_GetError()<<endl;
-    exit(EXIT_FAILURE);
-  }
-  TTF_Init();
   SDL_ShowCursor(SDL_DISABLE);
-  SDL_WM_SetIcon(SDL_LoadBMP(icone.c_str()), NULL);
-  scr = SDL_SetVideoMode(width+width/2,height,32,SDL_HWSURFACE);
+  scr = SDL_SetVideoMode(width+width/2,height,32,SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);
   background = SDL_LoadBMP(back_ground.c_str());
   cursor = SDL_LoadBMP(icone.c_str());
   game = SDL_CreateRGBSurface(SDL_HWSURFACE, width, height, 32, 0, 0, 0, 0);
@@ -97,8 +91,6 @@ screen::~screen(){
   SDL_FreeSurface(game);
   SDL_FreeSurface(background);
   SDL_FreeSurface(cursor);
-  TTF_Quit();
-  SDL_Quit();
 }
 
 void screen::flip(){SDL_Flip(scr);}

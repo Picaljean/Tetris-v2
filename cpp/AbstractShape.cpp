@@ -80,9 +80,9 @@ int AbstractShape::previous(){
   if(num==first){
     prev=last;
   }else{
-    num--;
+    prev--;
   }
-  return num;
+  return prev;
 }
 
 pair<int,int> AbstractShape::new_shape(){
