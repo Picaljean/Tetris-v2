@@ -128,12 +128,14 @@ bool Game::colision(char c){
   pair<int,int> tmp;
   for(int i=0;i<4;i++){
     tmp=currentpiece->near_bloc(c,i);
-    if(tmp.first>=0 && tmp.first<gridwidth*sizecell && tmp.second<gridheight*sizecell){
-      if(grid[(tmp.second/sizecell)*gridwidth+tmp.first/sizecell]!='n'){
-	colision = true ;
+    if(!(c=='d' && tmp.second<0)){
+      if(tmp.first>=0 && tmp.first<gridwidth*sizecell && tmp.second<gridheight*sizecell){
+	if(grid[(tmp.second/sizecell)*gridwidth+tmp.first/sizecell]!='n'){
+	  colision = true ;
+	}
+      }else{
+	colision = true ; // end of line
       }
-    }else{
-      colision = true ; // end of line
     }
   }
   return colision;

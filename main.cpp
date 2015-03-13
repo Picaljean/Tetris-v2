@@ -168,8 +168,8 @@ bool play(string playername){
   sounds["move"]=sound_folder+"move.wav";
 
   Game g(playername,1,22,10,SIZE_CELL);
-  g.setCurrentpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,0,SIZE_CELL));
-  g.setNextpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,0,SIZE_CELL));
+  g.setCurrentpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,-(SIZE_CELL*4),SIZE_CELL));
+  g.setNextpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,-(SIZE_CELL*4),SIZE_CELL));
   screen screen_display(SIZE_CELL*g.getGridWidth(),SIZE_CELL*g.getGridHeight(),img_folder+"window_icone.bmp",img_folder+"background.bmp");
   Sound game_sound(sound_folder+"tetris.mp3",sound_folder+"game_over.wav",sounds);
   game_sound.play_music(-1); // play game music
@@ -242,23 +242,24 @@ bool play(string playername){
       game_sound.play_sound("shape_drop");
       g.add_shape(g.getCurrentpiece());
 
-      if(g.getNbblocs()%10==0){ // level up
-	g.resetNbblocs();
-	g.levelup();
-	interval-=10;
-	game_sound.play_sound("level_up");
-      }
-
-      for(int cpt=g.getCurrentpiece()->match_line_up();cpt<=g.getCurrentpiece()->match_line()-1;cpt++){
-	if(g.check_line(cpt)){
-	  g.delete_line(cpt);
-	  g.getPlayer()->updateScore(400*g.getCurrentlevel());
-	  game_sound.play_sound("erase_line");
-	  g.add_line();
+      if(g.getCurrentpiece()->y_up_bloc()>=0 && !g.colision('d')){ // not lose
+	if(g.getNbblocs()%10==0){ // level up
+	  g.resetNbblocs();
+	  g.levelup();
+	  interval-=10;
+	  game_sound.play_sound("level_up");
 	}
-      }
 
-      if(g.getCurrentpiece()->y_up_bloc()<=0 && g.colision('d')){
+	for(int cpt=g.getCurrentpiece()->match_line_up();cpt<=g.getCurrentpiece()->match_line()-1;cpt++){
+	  if(g.check_line(cpt)){
+	    g.delete_line(cpt);
+	    g.getPlayer()->updateScore(400*g.getCurrentlevel());
+	    game_sound.play_sound("erase_line");
+	    g.add_line();
+	  }
+	}
+
+      }else if(g.getCurrentpiece()->y_up_bloc()<=0 && g.colision('d')){ // lose
 	game_sound.play_game_over();
 	screen_display.write_text("Game Over !",color,10,screen_display.getHeight()/2.2-SIZE_CELL/2,SIZE_CELL*1.5,font_folder+"ocraext.ttf");
 	screen_display.flip();
@@ -278,7 +279,7 @@ bool play(string playername){
       }else{
 	g.getPlayer()->updateScore(g.getCurrentlevel()*10);
 	g.setCurrentpiece(g.getNextpiece());
-	g.setNextpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,0,SIZE_CELL));
+	g.setNextpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,-(SIZE_CELL*4),SIZE_CELL));
       }
     }
 
@@ -309,6 +310,7 @@ void high_score(){
   while(go){
     while(SDL_PollEvent(&event)){
       switch(event.type){
+
       case SDL_QUIT:
 	go = false;
 	break;
