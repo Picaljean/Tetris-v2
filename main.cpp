@@ -5,6 +5,7 @@
 #include "hpp/game.hpp"
 #include "hpp/factory.hpp"
 #include "hpp/menu.hpp"
+#include "hpp/score.hpp"
 #include <map>
 #define SIZE_CELL 40
 using namespace std;
@@ -14,20 +15,6 @@ enum MENU{
   MENU_SCORES,
   MENU_QUIT
 };
-
-void high_scores(ostream &o){
-  fstream file("save/save.txt",ios::in);
-  string content;
-  if(file){
-    while(getline(file,content)){
-      o<<content<<endl;
-    }
-    file.close();
-  }else{
-    cerr<<"Unable to open save file"<<endl;
-  }
-  o<<endl;
-}
 
 string concat(string text,int integer){
   stringstream tmp;
@@ -314,24 +301,31 @@ bool play(string playername){
   return EXIT_SUCCESS;
 }
 
-/*int main(){
-  init();
-  int choice;
-  string playername;
-  do{
-    cout<<"Menu :"<<endl<<"(1) High Scores"<<endl<<"(2) Start Game"<<endl;
-    cin>>choice;
-    if(choice==1){
-      high_scores(cout);
-    }else{
-      cout<<"Quel est votre nom ?"<<endl;
-      cin>>playername;
+void high_score(){
+  bool go = true;
+  score score("font/ocraext.ttf","save/save.txt","image/high_score_background.bmp",25,480,640);
+  score.resize();
+  SDL_Event event;
+  while(go){
+    while(SDL_PollEvent(&event)){
+      switch(event.type){
+      case SDL_QUIT:
+	go = false;
+	break;
+      
+      case SDL_KEYDOWN:
+	switch(event.key.keysym.sym){
+	case SDLK_ESCAPE:
+	  go = false;
+	  break;
+	}
+      }
     }
-  }while(choice!=2);
-  play(playername);
-  quit();
-  return 0;
-}*/
+    score.write_scores();
+    score.flip();
+    score.clear();
+  }
+}
 
 int main(){
   init();
@@ -349,60 +343,66 @@ int main(){
   m.add_element("New Game");
   m.add_element("High Scores");
   m.add_element("Quit");
-  bool go = true;
+  bool menu = true;
+  bool all = true;
   int choice;
   string playername;
-
-  while(go){
-    while(SDL_PollEvent(&event)){
-      switch(event.type){
-      case SDL_QUIT:
-	go = false;
-	break;
-      case SDL_KEYDOWN:
-	switch(event.key.keysym.sym){
-
-	case SDLK_UP:
-	  m.move_up();
+  while(all){
+    choice = -1;
+    m.reload();
+    while(menu){
+      while(SDL_PollEvent(&event)){
+	switch(event.type){
+	case SDL_QUIT:
+	  menu = false;
 	  break;
+	case SDL_KEYDOWN:
+	  switch(event.key.keysym.sym){
+
+	  case SDLK_UP:
+	    m.move_up();
+	    break;
       
-	case SDLK_DOWN:
-	  m.move_down();
-	  break;
+	  case SDLK_DOWN:
+	    m.move_down();
+	    break;
       
-	case SDLK_RETURN:
-	  choice=m.getCurrentIndex();
-	  go=false;
-	  break;
+	  case SDLK_RETURN:
+	    choice=m.getCurrentIndex();
+	    menu=false;
+	    break;
 
-	case SDLK_ESCAPE:
-	  go = false;
+	  case SDLK_ESCAPE:
+	    menu = false;
+	    break;
+	  }
 	  break;
 	}
-	break;
       }
+      m.display();
+      m.flip();
+      if(actual_time - last_time < interval){ // timer for display
+	SDL_Delay(interval - (actual_time - last_time));
+      }
+      last_time = actual_time;   
     }
-    m.display();
-    m.flip();
-    if(actual_time - last_time < interval){ // timer for display
-      SDL_Delay(interval - (actual_time - last_time));
+    
+    switch(choice){
+    case MENU_GAME:
+      cout<<"Quel est votre nom ?"<<endl;
+      cin>>playername;
+      play(playername);
+      break;
+
+    case MENU_SCORES:
+      high_score();
+      break;
+
+    case MENU_QUIT:
+      all=false;
+      break;
     }
-    last_time = actual_time;   
-  }
-  switch(choice){
-
-  case MENU_GAME:
-    cout<<"Quel est votre nom ?"<<endl;
-    cin>>playername;
-    play(playername);
-    break;
-
-  case MENU_SCORES:
-    high_scores(cout);
-    break;
-
-  case MENU_QUIT:
-    break;
+    menu = true;
   }
   quit();
   return 0;

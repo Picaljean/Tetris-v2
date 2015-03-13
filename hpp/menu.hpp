@@ -21,6 +21,8 @@ private:
   SDL_Surface * scr;
   SDL_Color Hover_color;
   SDL_Color Normal_color;
+  int width;
+  int height;
   int posX;
   int posY;
   int currentIndex;
@@ -34,6 +36,7 @@ public:
   void display_elem(SDL_Surface *,int,int);
   void display();
   void flip();
+  void reload();
   void move_up();
   void move_down();
   void blit_back();

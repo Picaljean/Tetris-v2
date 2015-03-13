@@ -21,7 +21,7 @@ void Menu::add_element(string text){
   elements.push_back(e);
 }
 
-Menu::Menu(int size,string font,string icone,string back_ground,SDL_Color hover,SDL_Color normal,int width,int height):size(size),font_file(font),Hover_color(hover),Normal_color(normal),posX(width/2-50),posY(height/2-50),currentIndex(0){
+Menu::Menu(int size,string font,string icone,string back_ground,SDL_Color hover,SDL_Color normal,int width,int height):size(size),font_file(font),Hover_color(hover),Normal_color(normal),posX(width/2-50),posY(height/2-50),currentIndex(0),width(width),height(height){
    SDL_WM_SetIcon(SDL_LoadBMP(icone.c_str()), NULL);
    scr = SDL_SetVideoMode(width,height,32,SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);
    background = SDL_LoadBMP(back_ground.c_str());
@@ -37,6 +37,9 @@ Menu::~Menu(){
 }
 
 void Menu::flip(){SDL_Flip(scr);}
+
+void Menu::reload(){
+  scr = SDL_SetVideoMode(width,height,32,SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);}
 
 void Menu::blit_back(){
   SDL_Rect pos;
