@@ -67,7 +67,7 @@ void score::write_scores(){
 
   auto it = s.end();
   it--;
-  while(cpt<5){
+  while(!s.empty() && cpt<5){
     score_surface = TTF_RenderText_Blended(font,concat((*it).first+"   ",(*it).second,longest_score()-concat((*it).first+"   ",(*it).second,0).size()).c_str(),c);
     pos.y=y;
     SDL_BlitSurface(score_surface,NULL,scr,&pos);
@@ -77,6 +77,12 @@ void score::write_scores(){
     }
     it--;
     cpt++;
+  }
+  if(s.empty()){
+    score_surface = TTF_RenderText_Blended(font,"No Save",c);
+    pos.x=width/2-50;
+    pos.y=height/2-20;
+    SDL_BlitSurface(score_surface,NULL,scr,&pos);
   }
 
   SDL_FreeSurface(score_surface);

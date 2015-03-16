@@ -242,22 +242,23 @@ bool play(string playername){
       game_sound.play_sound("shape_drop");
       g.add_shape(g.getCurrentpiece());
 
+      for(int cpt=g.getCurrentpiece()->match_line_up();cpt<=g.getCurrentpiece()->match_line()-1;cpt++){
+	if(g.check_line(cpt)){
+	  g.delete_line(cpt);
+	  g.getPlayer()->updateScore(400*g.getCurrentlevel());
+	  game_sound.play_sound("erase_line");
+	  g.add_line();
+	}
+      }
+
       if(g.getCurrentpiece()->y_up_bloc()>=0 && !g.colision('d')){ // not lose
+	cout<<"rentre"<<endl;
 	if(g.getNbblocs()%10==0){ // level up
 	  g.resetNbblocs();
 	  g.levelup();
 	  interval-=10;
 	  game_sound.play_sound("level_up");
-	}
-
-	for(int cpt=g.getCurrentpiece()->match_line_up();cpt<=g.getCurrentpiece()->match_line()-1;cpt++){
-	  if(g.check_line(cpt)){
-	    g.delete_line(cpt);
-	    g.getPlayer()->updateScore(400*g.getCurrentlevel());
-	    game_sound.play_sound("erase_line");
-	    g.add_line();
-	  }
-	}
+	}  
 
       }else if(g.getCurrentpiece()->y_up_bloc()<=0 && g.colision('d')){ // lose
 	game_sound.play_game_over();
