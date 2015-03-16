@@ -251,16 +251,14 @@ bool play(string playername){
 	}
       }
 
-      if(g.getCurrentpiece()->y_up_bloc()>=0 && !g.colision('d')){ // not lose
-	cout<<"rentre"<<endl;
-	if(g.getNbblocs()%10==0){ // level up
+      if(g.getNbblocs()%10==0){ // level up
 	  g.resetNbblocs();
 	  g.levelup();
 	  interval-=10;
 	  game_sound.play_sound("level_up");
-	}  
+	} 
 
-      }else if(g.getCurrentpiece()->y_up_bloc()<=0 && g.colision('d')){ // lose
+      if(g.getCurrentpiece()->y_up_bloc()<=0 && g.colision('d')){ // lose
 	game_sound.play_game_over();
 	screen_display.write_text("Game Over !",color,10,screen_display.getHeight()/2.2-SIZE_CELL/2,SIZE_CELL*1.5,font_folder+"ocraext.ttf");
 	screen_display.flip();
