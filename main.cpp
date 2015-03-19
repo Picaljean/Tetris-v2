@@ -36,6 +36,30 @@ void quit(){
   SDL_Quit();
 }
 
+
+void game_pause(){
+  SDL_Event event;
+  bool go = true ;
+  while(go){
+    while(SDL_PollEvent(&event)){
+      switch(event.type){
+      case SDL_QUIT:
+	go = false;
+	break;
+      case SDL_KEYDOWN:
+	switch(event.key.keysym.sym){
+	case SDLK_p:
+	  go = false;
+	  break;
+	case SDLK_ESCAPE:
+	  go = false;
+	  break;
+	}
+      }
+    }
+  }
+}
+
 void key_management(Game & g,Sound & game_sound,Factory & f){
   int x,y;
   Uint8 * keys = SDL_GetKeyState(NULL);
@@ -106,12 +130,6 @@ void key_management(Game & g,Sound & game_sound,Factory & f){
     
   if(keys[SDLK_s]){
     game_sound.stop_music();
-  }
-
-  if(keys[SDLK_p]){
-    if(game_sound.is_music_paused()){
-      game_sound.resume_music();
-    }
   }
     
   if(keys[SDLK_KP1]){
@@ -223,6 +241,11 @@ bool play(string playername){
 	  case SDLK_ESCAPE:{
 	    go=false;	 
 	    break;}
+	  case SDLK_p:
+	    game_sound.pause_music();
+	    game_pause();
+	    game_sound.resume_music();
+	    break;
 	  case SDLK_UP:{
 	    tmp=f.create(concat("shape",g.getCurrentpiece()->next()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
 	    if(!g.rotation_colision(tmp)){
@@ -234,15 +257,15 @@ bool play(string playername){
 	}
     }
 
-    key_management(g,game_sound,f);
+    key_management(g,game_sound,f);//key management
 
     if(!g.colision('d')){ // moving the shape down
       g.getCurrentpiece()->move_down(20);
-    }else{ // put the shape on the floor or on another shape
+    }else{ //colision detected, put the shape on the floor or on another shape or game over
       game_sound.play_sound("shape_drop");
       g.add_shape(g.getCurrentpiece());
 
-      for(int cpt=g.getCurrentpiece()->match_line_up();cpt<=g.getCurrentpiece()->match_line()-1;cpt++){
+      for(int cpt=g.getCurrentpiece()->match_line_up();cpt<=g.getCurrentpiece()->match_line()-1;cpt++){ // lines to erase
 	if(g.check_line(cpt)){
 	  g.delete_line(cpt);
 	  g.getPlayer()->updateScore(400*g.getCurrentlevel());
@@ -258,7 +281,7 @@ bool play(string playername){
 	  game_sound.play_sound("level_up");
 	} 
 
-      if(g.getCurrentpiece()->y_up_bloc()<=0 && g.colision('d')){ // lose
+      if(g.getCurrentpiece()->y_up_bloc()<=0 && g.colision('d')){ // game over
 	game_sound.play_game_over();
 	screen_display.write_text("Game Over !",color,10,screen_display.getHeight()/2.2-SIZE_CELL/2,SIZE_CELL*1.5,font_folder+"ocraext.ttf");
 	screen_display.flip();
@@ -275,22 +298,23 @@ bool play(string playername){
 	  }
 	}
 	go=false;
-      }else{
+      }else{ // game is not lose, we just update score and swap currentpiece/nextpiece and get a new nextpiece 
 	g.getPlayer()->updateScore(g.getCurrentlevel()*10);
 	g.setCurrentpiece(g.getNextpiece());
 	g.setNextpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,-(SIZE_CELL*4),SIZE_CELL));
       }
     }
 
-    screen_display<<g;
-    screen_display.blit();
+    screen_display<<g; // print items on the differents parts of the game
+    screen_display.blit(); // blit differents parts of the game screen on the main screen
 
+    // print other infos on the right of the screen
     screen_display.write_text(concat("Score : ",g.getPlayer()->getScore()),color,screen_display.getWidth()+30,screen_display.getHeight()/4+screen_display.getHeight()/12,SIZE_CELL/2,font_folder+"ocraext.ttf");
     screen_display.write_text(concat("Level : ",g.getCurrentlevel()),color,screen_display.getWidth()+30,screen_display.getHeight()/4+screen_display.getHeight()/12+SIZE_CELL,SIZE_CELL/2,font_folder+"ocraext.ttf");
     screen_display.write_text(concat("Lines : ",g.get_lines()),color,screen_display.getWidth()+30,screen_display.getHeight()/4+screen_display.getHeight()/12+2*SIZE_CELL,SIZE_CELL/2,font_folder+"ocraext.ttf");
 
-    screen_display.flip();
-    screen_display.empty();
+    screen_display.flip(); // flip screen (double buffering)
+    screen_display.empty(); // clean the screen
       
 
     if(actual_time - last_time < interval){ // timer for display
@@ -301,7 +325,7 @@ bool play(string playername){
   return EXIT_SUCCESS;
 }
 
-void high_score(){
+void high_score(){ // display high scores stored in save/save.txt
   bool go = true;
   score score("font/ocraext.ttf","save/save.txt","image/high_score_background.bmp",25,480,640);
   score.resize();
@@ -320,6 +344,9 @@ void high_score(){
 	  go = false;
 	  break;
 	}
+        case SDLK_RETURN:
+	  go = false;
+	  break;
       }
     }
     score.write_scores();
@@ -331,7 +358,7 @@ void high_score(){
 int main(){
   init();
   SDL_Color hover = {26,62,137};
-  SDL_Color normal = {150,150,150};
+  SDL_Color normal = {180,180,180};
   SDL_Event event;
 
   int last_time = 0, actual_time = 0;
@@ -348,14 +375,15 @@ int main(){
   bool all = true;
   int choice;
   string playername;
-  while(all){
+  while(all){ // main loop to stay in the main menu after another screen
     choice = -1;
     m.reload();
-    while(menu){
+    while(menu){// menu to chose action
       while(SDL_PollEvent(&event)){
 	switch(event.type){
 	case SDL_QUIT:
 	  menu = false;
+	  all = false;
 	  break;
 	case SDL_KEYDOWN:
 	  switch(event.key.keysym.sym){
@@ -368,7 +396,7 @@ int main(){
 	    m.move_down();
 	    break;
       
-	  case SDLK_RETURN:
+	  case SDLK_RETURN: // get current index of the menu
 	    choice=m.getCurrentIndex();
 	    menu=false;
 	    break;
@@ -380,26 +408,26 @@ int main(){
 	  break;
 	}
       }
-      m.display();
+      m.display();//menu display
       m.flip();
-      if(actual_time - last_time < interval){ // timer for display
+      if(actual_time - last_time < interval){
 	SDL_Delay(interval - (actual_time - last_time));
       }
       last_time = actual_time;   
     }
     
     switch(choice){
-    case MENU_GAME:
+    case MENU_GAME://launch a game
       cout<<"Quel est votre nom ?"<<endl;
       cin>>playername;
       play(playername);
       break;
 
-    case MENU_SCORES:
+    case MENU_SCORES://display high scores
       high_score();
       break;
 
-    case MENU_QUIT:
+    case MENU_QUIT://quit the program
       all=false;
       break;
     }
