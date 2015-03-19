@@ -20,6 +20,7 @@ private :
   int sizecell;
   int nbblocs;
   int lines;
+  bool pause;
 public:
   Game(string,int,int,int,int);
   void display(screen *)const;
@@ -27,6 +28,7 @@ public:
   void save_score(string);
   void add_shape(AbstractShape *);
   bool check_line(int);
+  bool is_paused();
   void delete_line(int);
   void add_line();
   int get_lines();
@@ -37,6 +39,7 @@ public:
   void resetNbblocs();
   void levelup();
   Player * getPlayer();
+  void setPause();
   void setCurrentpiece(AbstractShape *);
   void setNextpiece(AbstractShape *);
   AbstractShape * getCurrentpiece();

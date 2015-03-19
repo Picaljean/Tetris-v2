@@ -36,30 +36,6 @@ void quit(){
   SDL_Quit();
 }
 
-
-void game_pause(){
-  SDL_Event event;
-  bool go = true ;
-  while(go){
-    while(SDL_PollEvent(&event)){
-      switch(event.type){
-      case SDL_QUIT:
-	go = false;
-	break;
-      case SDL_KEYDOWN:
-	switch(event.key.keysym.sym){
-	case SDLK_p:
-	  go = false;
-	  break;
-	case SDLK_ESCAPE:
-	  go = false;
-	  break;
-	}
-      }
-    }
-  }
-}
-
 void key_management(Game & g,Sound & game_sound,Factory & f){
   int x,y;
   Uint8 * keys = SDL_GetKeyState(NULL);
@@ -242,9 +218,12 @@ bool play(string playername){
 	    go=false;	 
 	    break;}
 	  case SDLK_p:
-	    game_sound.pause_music();
-	    game_pause();
-	    game_sound.resume_music();
+	    if(game_sound.is_music_paused()){
+	      game_sound.resume_music();
+	    }else{
+	      game_sound.pause_music();
+	    }
+	    g.setPause();
 	    break;
 	  case SDLK_UP:{
 	    tmp=f.create(concat("shape",g.getCurrentpiece()->next()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
@@ -259,49 +238,52 @@ bool play(string playername){
 
     key_management(g,game_sound,f);//key management
 
-    if(!g.colision('d')){ // moving the shape down
-      g.getCurrentpiece()->move_down(20);
-    }else{ //colision detected, put the shape on the floor or on another shape or game over
-      game_sound.play_sound("shape_drop");
-      g.add_shape(g.getCurrentpiece());
 
-      for(int cpt=g.getCurrentpiece()->match_line_up();cpt<=g.getCurrentpiece()->match_line()-1;cpt++){ // lines to erase
-	if(g.check_line(cpt)){
-	  g.delete_line(cpt);
-	  g.getPlayer()->updateScore(400*g.getCurrentlevel());
-	  game_sound.play_sound("erase_line");
-	  g.add_line();
+    if(!g.is_paused()){
+      if(!g.colision('d')){ // moving the shape down
+	g.getCurrentpiece()->move_down(20);
+      }else{ //colision detected, put the shape on the floor or on another shape or game over
+	game_sound.play_sound("shape_drop");
+	g.add_shape(g.getCurrentpiece());
+
+	for(int cpt=g.getCurrentpiece()->match_line_up();cpt<=g.getCurrentpiece()->match_line()-1;cpt++){ // lines to erase
+	  if(g.check_line(cpt)){
+	    g.delete_line(cpt);
+	    g.getPlayer()->updateScore(400*g.getCurrentlevel());
+	    game_sound.play_sound("erase_line");
+	    g.add_line();
+	  }
 	}
-      }
 
-      if(g.getNbblocs()%10==0){ // level up
+	if(g.getNbblocs()%10==0){ // level up
 	  g.resetNbblocs();
 	  g.levelup();
 	  interval-=10;
 	  game_sound.play_sound("level_up");
 	} 
 
-      if(g.getCurrentpiece()->y_up_bloc()<=0 && g.colision('d')){ // game over
-	game_sound.play_game_over();
-	screen_display.write_text("Game Over !",color,10,screen_display.getHeight()/2.2-SIZE_CELL/2,SIZE_CELL*1.5,font_folder+"ocraext.ttf");
-	screen_display.flip();
-	SDL_Event pause;
-	while(SDL_WaitEvent(&pause)){
-	  switch(pause.type){
-	  case SDL_QUIT:
-	    return false;
-	  case SDL_KEYDOWN:
-	    switch(pause.key.keysym.sym){
-	    case SDLK_ESCAPE:
+	if(g.getCurrentpiece()->y_up_bloc()<=0 && g.colision('d')){ // game over
+	  game_sound.play_game_over();
+	  screen_display.write_text("Game Over !",color,10,screen_display.getHeight()/2.2-SIZE_CELL/2,SIZE_CELL*1.5,font_folder+"ocraext.ttf");
+	  screen_display.flip();
+	  SDL_Event pause;
+	  while(SDL_WaitEvent(&pause)){
+	    switch(pause.type){
+	    case SDL_QUIT:
 	      return false;
+	    case SDL_KEYDOWN:
+	      switch(pause.key.keysym.sym){
+	      case SDLK_ESCAPE:
+		return false;
+	      }
 	    }
 	  }
+	  go=false;
+	}else{ // game is not lose, we just update score and swap currentpiece/nextpiece and get a new nextpiece 
+	  g.getPlayer()->updateScore(g.getCurrentlevel()*10);
+	  g.setCurrentpiece(g.getNextpiece());
+	  g.setNextpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,-(SIZE_CELL*4),SIZE_CELL));
 	}
-	go=false;
-      }else{ // game is not lose, we just update score and swap currentpiece/nextpiece and get a new nextpiece 
-	g.getPlayer()->updateScore(g.getCurrentlevel()*10);
-	g.setCurrentpiece(g.getNextpiece());
-	g.setNextpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,-(SIZE_CELL*4),SIZE_CELL));
       }
     }
 
@@ -312,6 +294,10 @@ bool play(string playername){
     screen_display.write_text(concat("Score : ",g.getPlayer()->getScore()),color,screen_display.getWidth()+30,screen_display.getHeight()/4+screen_display.getHeight()/12,SIZE_CELL/2,font_folder+"ocraext.ttf");
     screen_display.write_text(concat("Level : ",g.getCurrentlevel()),color,screen_display.getWidth()+30,screen_display.getHeight()/4+screen_display.getHeight()/12+SIZE_CELL,SIZE_CELL/2,font_folder+"ocraext.ttf");
     screen_display.write_text(concat("Lines : ",g.get_lines()),color,screen_display.getWidth()+30,screen_display.getHeight()/4+screen_display.getHeight()/12+2*SIZE_CELL,SIZE_CELL/2,font_folder+"ocraext.ttf");
+
+    if(g.is_paused()){
+      screen_display.write_text("Paused",color,screen_display.getWidth()/4,screen_display.getHeight()/2.2-SIZE_CELL/2,SIZE_CELL*1.5,font_folder+"ocraext.ttf");
+    }
 
     screen_display.flip(); // flip screen (double buffering)
     screen_display.empty(); // clean the screen

@@ -7,11 +7,15 @@
 #include <algorithm>
 using namespace std;
 
-Game::Game(string name,int level,int h, int w,int s):p(name),currentlevel(level),gridwidth(w),gridheight(h),sizecell(s),nbblocs(0),lines(0){
+Game::Game(string name,int level,int h, int w,int s):p(name),currentlevel(level),gridwidth(w),gridheight(h),sizecell(s),nbblocs(0),lines(0),pause(false){
   for(int i=0;i<gridwidth*gridheight;i++){
     grid.push_back('n');
   }
 }
+
+bool Game::is_paused(){return pause;}
+
+void Game::setPause(){pause=!pause;}
 
 void Game::add_line(){lines++;}
 
