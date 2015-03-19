@@ -7,16 +7,16 @@
 #include "hpp/menu.hpp"
 #include "hpp/score.hpp"
 #include <map>
-#define SIZE_CELL 40
+#define SIZE_CELL 40 // size of blocs
 using namespace std;
 
-enum MENU{
+enum MENU{//menu options
   MENU_GAME,
   MENU_SCORES,
   MENU_QUIT
 };
 
-string concat(string text,int integer){
+string concat(string text,int integer){// concatenate a string and an integer in a new string
   stringstream tmp;
   string txt=text;
   tmp.str( string() );
@@ -26,12 +26,12 @@ string concat(string text,int integer){
   return txt;
 }
 
-void init(){
+void init(){//initialisation of sdl libraries
   SDL_Init(SDL_INIT_VIDEO);
   TTF_Init();
 }
 
-void quit(){
+void quit(){//close libraries
   TTF_Quit();
   SDL_Quit();
 }
@@ -103,18 +103,6 @@ void key_management(Game & g,Sound & game_sound,Factory & f){
       g.getCurrentpiece()->move_down(SIZE_CELL);
     }
   }
-    
-  if(keys[SDLK_s]){
-    game_sound.stop_music();
-  }
-    
-  if(keys[SDLK_KP1]){
-    tmp=f.create(concat("shape",g.getCurrentpiece()->previous()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
-    if(!g.rotation_colision(tmp)){
-      g.setCurrentpiece(tmp);
-      game_sound.play_sound("turn");
-    }
-  }
 }
 
 bool play(string playername){
@@ -132,7 +120,7 @@ bool play(string playername){
   string env="SDL_VIDEO_CENTERED=1";
   putenv((char *)env.c_str());
 
-  // factory registering
+  //factory registering
   Factory::Register("shape0",new Shape0);
   Factory::Register("shape1",new Shape1);
   Factory::Register("shape2",new Shape2);
@@ -162,25 +150,25 @@ bool play(string playername){
   sounds["move"]=sound_folder+"move.wav";
 
   Game g(playername,1,22,10,SIZE_CELL);
-  g.setCurrentpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,-(SIZE_CELL*4),SIZE_CELL));
-  g.setNextpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,-(SIZE_CELL*4),SIZE_CELL));
+  g.setCurrentpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,-(SIZE_CELL*4),SIZE_CELL));//initialise first tetris piece
+  g.setNextpiece(f.create_random_shape(((g.getGridWidth()/2)-1)*SIZE_CELL,-(SIZE_CELL*4),SIZE_CELL));//initialise next tetris piece
   screen screen_display(SIZE_CELL*g.getGridWidth(),SIZE_CELL*g.getGridHeight(),img_folder+"window_icone.bmp",img_folder+"background.bmp");
   Sound game_sound(sound_folder+"tetris.mp3",sound_folder+"game_over.wav",sounds);
-  game_sound.play_music(-1); // play game music
+  game_sound.play_music(-1); //play game music
 
 
-  while(go){
-
+  while(go){// game loop
+    // dynamic window name with player name and score
     windowname=concat("Tetris  level ",g.getCurrentlevel());
     windowname+=" (player : ";
     windowname+=g.getPlayer()->getName();
     windowname+=" Score : ";
     windowname=concat(windowname,g.getPlayer()->getScore());
     windowname+=")";
-    SDL_WM_SetCaption(windowname.c_str(), NULL); // dynamic window name with player name and score
+    SDL_WM_SetCaption(windowname.c_str(), NULL);
     AbstractShape * tmp;
 
-    while (SDL_PollEvent(&event)){
+    while (SDL_PollEvent(&event)){//event loop
       switch(event.type)
 	{
 	case SDL_QUIT:
@@ -195,14 +183,14 @@ bool play(string playername){
 	case SDL_MOUSEBUTTONDOWN:{
 	  switch(event.button.button){
 	  case SDL_BUTTON_WHEELUP:{
-	    tmp =f.create(concat("shape",g.getCurrentpiece()->next()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
+	    tmp = f.create(concat("shape",g.getCurrentpiece()->next()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
 	    if(!g.rotation_colision(tmp)){
 	      g.setCurrentpiece(tmp);
 	      game_sound.play_sound("turn");
 	    }
 	    break;}
 	  case SDL_BUTTON_WHEELDOWN:{
-	    tmp=f.create(concat("shape",g.getCurrentpiece()->previous()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
+	    tmp = f.create(concat("shape",g.getCurrentpiece()->previous()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
 	    if(!g.rotation_colision(tmp)){
 	      g.setCurrentpiece(tmp);
 	      game_sound.play_sound("turn");
@@ -212,7 +200,7 @@ bool play(string playername){
 	  }
 	  break;}
 
-	case SDL_KEYDOWN:{
+	case SDL_KEYDOWN:{ // single pression keys
 	  switch(event.key.keysym.sym){
 	  case SDLK_ESCAPE:{
 	    go=false;	 
@@ -226,17 +214,24 @@ bool play(string playername){
 	    g.setPause();
 	    break;
 	  case SDLK_UP:{
-	    tmp=f.create(concat("shape",g.getCurrentpiece()->next()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
+	    tmp = f.create(concat("shape",g.getCurrentpiece()->next()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
 	    if(!g.rotation_colision(tmp)){
 	      g.setCurrentpiece(tmp);
 	    }
 	    break;}
+	  case SDLK_KP1:
+	    tmp = f.create(concat("shape",g.getCurrentpiece()->previous()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
+	    if(!g.rotation_colision(tmp)){
+	      g.setCurrentpiece(tmp);
+	      game_sound.play_sound("turn");
+	    }
+	    break;
 	  }
 	  break;} 
 	}
     }
 
-    key_management(g,game_sound,f);//key management
+    key_management(g,game_sound,f);//key management, who manage continue pressed keys
 
 
     if(!g.is_paused()){
@@ -267,7 +262,7 @@ bool play(string playername){
 	  screen_display.write_text("Game Over !",color,10,screen_display.getHeight()/2.2-SIZE_CELL/2,SIZE_CELL*1.5,font_folder+"ocraext.ttf");
 	  screen_display.flip();
 	  SDL_Event pause;
-	  while(SDL_WaitEvent(&pause)){
+	  while(SDL_WaitEvent(&pause)){// event after game over screen
 	    switch(pause.type){
 	    case SDL_QUIT:
 	      return false;
@@ -295,7 +290,7 @@ bool play(string playername){
     screen_display.write_text(concat("Level : ",g.getCurrentlevel()),color,screen_display.getWidth()+30,screen_display.getHeight()/4+screen_display.getHeight()/12+SIZE_CELL,SIZE_CELL/2,font_folder+"ocraext.ttf");
     screen_display.write_text(concat("Lines : ",g.get_lines()),color,screen_display.getWidth()+30,screen_display.getHeight()/4+screen_display.getHeight()/12+2*SIZE_CELL,SIZE_CELL/2,font_folder+"ocraext.ttf");
 
-    if(g.is_paused()){
+    if(g.is_paused()){ // if the game is paused, print "paused" on screen
       screen_display.write_text("Paused",color,screen_display.getWidth()/4,screen_display.getHeight()/2.2-SIZE_CELL/2,SIZE_CELL*1.5,font_folder+"ocraext.ttf");
     }
 
@@ -319,7 +314,6 @@ void high_score(){ // display high scores stored in save/save.txt
   while(go){
     while(SDL_PollEvent(&event)){
       switch(event.type){
-
       case SDL_QUIT:
 	go = false;
 	break;
@@ -333,6 +327,8 @@ void high_score(){ // display high scores stored in save/save.txt
         case SDLK_RETURN:
 	  go = false;
 	  break;
+      default:
+	break;
       }
     }
     score.write_scores();
@@ -353,6 +349,7 @@ int main(){
   string env="SDL_VIDEO_CENTERED=1";
   putenv((char *)env.c_str());
 
+  //creation of main menu
   Menu m(22,"font/ocraext.ttf","image/window_icone.bmp","image/menu.bmp",hover,normal,640,480);
   m.add_element("New Game");
   m.add_element("High Scores");
@@ -361,6 +358,7 @@ int main(){
   bool all = true;
   int choice;
   string playername;
+
   while(all){ // main loop to stay in the main menu after another screen
     choice = -1;
     m.reload();
@@ -403,7 +401,7 @@ int main(){
     }
     
     switch(choice){
-    case MENU_GAME://launch a game
+    case MENU_GAME://launch the game
       cout<<"Quel est votre nom ?"<<endl;
       cin>>playername;
       play(playername);

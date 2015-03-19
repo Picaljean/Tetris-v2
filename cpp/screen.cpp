@@ -3,26 +3,32 @@
 using namespace std;
 
 screen::screen(int w,int h,string icone,string back_ground):width(w),height(h){
-  SDL_ShowCursor(SDL_DISABLE);
-  scr = SDL_SetVideoMode(width+width/2,height,32,SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);
-  background = SDL_LoadBMP(back_ground.c_str());
-  cursor = SDL_LoadBMP(icone.c_str());
-  game = SDL_CreateRGBSurface(SDL_HWSURFACE, width, height, 32, 0, 0, 0, 0);
-  piece = SDL_CreateRGBSurface(SDL_HWSURFACE, width/2, height/4, 32, 0, 0, 0, 0);
-  SDL_SetColorKey(piece,SDL_SRCCOLORKEY,SDL_MapRGB(piece->format, 255, 255, 255));
-  SDL_SetColorKey(cursor,SDL_SRCCOLORKEY,SDL_MapRGB(piece->format, 0, 0, 0));
-  if(!scr){
+
+  SDL_ShowCursor(SDL_DISABLE);//disable mouse cursor
+
+  scr = SDL_SetVideoMode(width+width/2,height,32,SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);//set the Main surface in scr
+
+  background = SDL_LoadBMP(back_ground.c_str());//load background
+  cursor = SDL_LoadBMP(icone.c_str());//load cursor picture
+  game = SDL_CreateRGBSurface(SDL_HWSURFACE, width, height, 32, 0, 0, 0, 0);//create game surface
+  piece = SDL_CreateRGBSurface(SDL_HWSURFACE, width/2, height/4, 32, 0, 0, 0, 0);//create next piece surface
+
+  SDL_SetColorKey(piece,SDL_SRCCOLORKEY,SDL_MapRGB(piece->format, 255, 255, 255));//white become invisible in piece surface
+  SDL_SetColorKey(cursor,SDL_SRCCOLORKEY,SDL_MapRGB(piece->format, 0, 0, 0));//black become invisible in cursor surface
+
+  if(!scr){//check if SDL_SetVideoMode worked
     cerr<<"Unable to load video mode : \n"<<SDL_GetError()<<endl;
     exit(EXIT_FAILURE);
   }
-  SDL_WM_SetCaption("Tetris", NULL);
+
+  SDL_WM_SetCaption("Tetris", "Tetris");//set icone and window name
 }
 
-void screen::resize(){
+void screen::resize(){//call SDL_SetVideoMode again when a sdl_resize event is catched, to correct a mouse range bug when we go from menu scr to game scr
   scr = SDL_SetVideoMode(width+width/2,height,32,SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);
 }
 
-void screen::draw_rect(int x,int y,int w, int h,char c,SDL_Surface * s){
+void screen::draw_rect(int x,int y,int w, int h,char c,SDL_Surface * s){// draw a rectangle of c color, on an SDL_Surface
   int r=0;
   int g=0;
   int b=0;
@@ -79,7 +85,7 @@ void screen::draw_rect(int x,int y,int w, int h,char c,SDL_Surface * s){
   SDL_FillRect(s, &rectangle, SDL_MapRGB(s->format, r, g, b));
 }
 
-void screen::empty(){
+void screen::empty(){//clean piece and game surfaces
   SDL_FillRect(piece, NULL, SDL_MapRGB(piece->format, 255, 255, 255));
   SDL_FillRect(game, NULL, SDL_MapRGB(game->format,255,255,255));
 }
@@ -90,16 +96,16 @@ SDL_Surface * screen::getPiece()const{return piece;}
 
 SDL_Surface * screen::getScr()const{return scr;}
 
-screen::~screen(){
+screen::~screen(){//release memory
   SDL_FreeSurface(piece);
   SDL_FreeSurface(game);
   SDL_FreeSurface(background);
   SDL_FreeSurface(cursor);
 }
 
-void screen::flip(){SDL_Flip(scr);}
+void screen::flip(){SDL_Flip(scr);}//flip main surface (double buffering)
 
-void screen::write_text(string text,SDL_Color color,int x,int y,int font_size,string font_file){
+void screen::write_text(string text,SDL_Color color,int x,int y,int font_size,string font_file){//write text with sdl on main surface
   TTF_Font *font = NULL;
   SDL_Rect pos;
   SDL_Surface * text_surface = NULL;
@@ -112,7 +118,7 @@ void screen::write_text(string text,SDL_Color color,int x,int y,int font_size,st
   TTF_CloseFont(font);
 }
 
-void screen::blit(){
+void screen::blit(){// blit parts on main surface
   SDL_Rect pos;
   pos.x=width;
   pos.y=0;

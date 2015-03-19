@@ -19,16 +19,16 @@ void Game::setPause(){pause=!pause;}
 
 void Game::add_line(){lines++;}
 
-void Game::add_shape(AbstractShape * s){
-  for(int cpt=0;cpt<4;cpt++){
+void Game::add_shape(AbstractShape * s){// add a shape in game grid
+  for(int cpt=0;cpt<4;cpt++){//for each bloc of the shape, we set grid[bloc] with shape color
     grid[s->get_location(cpt,gridwidth)]=s->getColor();
   }
   nbblocs++;
 }
 
-void Game::save_score(string fileoutput){
-  ifstream file(fileoutput.c_str(),ios::in);
-  ofstream tmp("tmp.txt",ios::app);
+void Game::save_score(string fileoutput){//save player score in savefile
+  ifstream file(fileoutput.c_str(),ios::in);//current save file
+  ofstream tmp("tmp.txt",ios::app);//temp save file where we copy old highscore or update them if player did a better score
   bool done=false;
   string name;
   int score;
@@ -43,10 +43,10 @@ void Game::save_score(string fileoutput){
       if(score>highscore){
 	highscore=score;
       }
-      if(name==p.getName() && score<p.getScore()){
+      if(name==p.getName() && score<p.getScore()){//player did a better score
 	tmp<<p.getName()<<" "<<p.getScore()<<"\n";
 	done=true;
-      }else if(name==p.getName() && score>=p.getScore()){
+      }else if(name==p.getName() && score>=p.getScore()){//player did a lower or equal score
 	done=true;
 	tmp<<name<<" "<<score<<"\n";
       }else{
@@ -62,14 +62,14 @@ void Game::save_score(string fileoutput){
   }
   file.close();
   tmp.close();
-  rename("tmp.txt",fileoutput.c_str());
-  if(highscore <= p.getScore()){
+  rename("tmp.txt",fileoutput.c_str());//temp file become the new save file
+  if(highscore <= p.getScore()){//if player score is a new highscore, print it
     cout<<"New Highscore !"<<endl;
   }
-  cout<<p.getName()<<" score : "<<p.getScore()<<endl;
+  cout<<p.getName()<<" score : "<<p.getScore()<<endl; //print player score in std output
 }
 
-void Game::delete_line(int l){ // warning
+void Game::delete_line(int l){ //erase a line, called when the line is full
   int cptl = l*gridwidth;
   int cptcol;
   char tmp;
@@ -84,7 +84,7 @@ void Game::delete_line(int l){ // warning
   }
 }
 
-bool Game::check_line(int l){
+bool Game::check_line(int l){//check if a line is full
   int cpt = l*gridwidth;
   bool is_full_line=true;
   while(cpt<(l+1)*gridwidth){
@@ -103,7 +103,7 @@ int Game::getGridHeight(){return gridheight;}
 
 Player * Game::getPlayer(){return &p;}
 
-screen & operator<<(screen & s,const Game & g){
+screen & operator<<(screen & s,const Game & g){//overload of display operator
   g.display(&s);
   return s;
 }
@@ -118,6 +118,7 @@ void Game::setNextpiece(AbstractShape * s){
 
 Game::~Game(){
   delete currentpiece;
+  delete nextpiece;
   save_score("save/save.txt");
 }
 
@@ -127,7 +128,7 @@ AbstractShape * Game::getNextpiece(){return nextpiece;}
 
 int Game::getCurrentlevel(){return currentlevel;}
 
-bool Game::colision(char c){
+bool Game::colision(char c){// check if there is a colision with the shape in 'c' direction
   bool colision = false;
   pair<int,int> tmp;
   for(int i=0;i<4;i++){
@@ -151,7 +152,7 @@ void Game::resetNbblocs(){nbblocs=0;}
 
 void Game::levelup(){currentlevel++;}
 
-bool Game::rotation_colision(AbstractShape * a){
+bool Game::rotation_colision(AbstractShape * a){//check if there is a colision with the new shape get after rotation, if there is, rotation is not allowed (in main, in events)
   bool colision=false;
   pair<int,int> tmp;
   for(int cpt=0;cpt<4;cpt++){
@@ -169,11 +170,11 @@ bool Game::rotation_colision(AbstractShape * a){
 
 int Game::get_lines(){return lines;}
 
-void Game::display(screen * s)const{
+void Game::display(screen * s)const{//display function called by << operator
   int x=0;
   int y=0;
   
-  for(auto it=grid.begin();it!=grid.end();it++){
+  for(auto it=grid.begin();it!=grid.end();it++){// we just draw a rectangle for each cell of grid
     s->draw_rect(x,y,sizecell,sizecell,(*it),s->getGame());
     x+=sizecell;
     if(x==sizecell*gridwidth){
@@ -181,6 +182,6 @@ void Game::display(screen * s)const{
       y+=sizecell;
     }
   }
-  currentpiece->display(s,0);
-  nextpiece->display(s,1);
+  currentpiece->display(s,0);// we also display currentpiece
+  nextpiece->display(s,1);// and next piece, second parameter determine on wich SDL_Surface the piece is print
 }
