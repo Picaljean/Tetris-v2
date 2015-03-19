@@ -41,66 +41,67 @@ void key_management(Game & g,Sound & game_sound,Factory & f){
   Uint8 * keys = SDL_GetKeyState(NULL);
   Uint8 mouse = SDL_GetMouseState(&x,&y);
   AbstractShape * tmp;
+  if(!g.is_paused()){
+    if(mouse & SDL_BUTTON(SDL_BUTTON_LEFT)){
+      if(x <= g.getCurrentpiece()->x_left_bloc()){
+	if(!g.colision('l')){
+	  g.getCurrentpiece()->move_left(SIZE_CELL);
+	  game_sound.play_sound("move");
+	}
+      }else if(x >= g.getCurrentpiece()->x_right_bloc()){
+	if(!g.colision('r')){
+	  g.getCurrentpiece()->move_right(SIZE_CELL);
+	  game_sound.play_sound("move");
+	}
+      }
+    }
 
-  if(mouse & SDL_BUTTON(SDL_BUTTON_LEFT)){
-    if(x <= g.getCurrentpiece()->x_left_bloc()){
+    if(mouse & SDL_BUTTON(SDL_BUTTON_MIDDLE)){
+      if(g.getCurrentpiece()->y_down_bloc()+SIZE_CELL*g.getCurrentlevel()<g.getGridHeight()*SIZE_CELL && !g.colision('d')){
+	g.getCurrentpiece()->move_down(g.getCurrentlevel()*SIZE_CELL);
+      }
+    }
+
+    if(mouse & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+      if(x <= g.getCurrentpiece()->x_left_bloc()){
+	if(!g.colision('l')){
+	  g.getCurrentpiece()->move_left(SIZE_CELL);
+	  game_sound.play_sound("move");
+	}
+      }else if(x >= g.getCurrentpiece()->x_right_bloc()){
+	if(!g.colision('r')){
+	  g.getCurrentpiece()->move_right(SIZE_CELL);
+	  game_sound.play_sound("move");
+	}
+      }
+    }
+
+    if(keys[SDLK_LEFT]){
       if(!g.colision('l')){
 	g.getCurrentpiece()->move_left(SIZE_CELL);
 	game_sound.play_sound("move");
       }
-    }else if(x >= g.getCurrentpiece()->x_right_bloc()){
+    }
+
+    if(keys[SDLK_KP_PLUS]){
+      game_sound.up_Volume();
+    }
+
+    if(keys[SDLK_KP_MINUS]){
+      game_sound.down_Volume();
+    }
+
+    if(keys[SDLK_RIGHT]){
       if(!g.colision('r')){
 	g.getCurrentpiece()->move_right(SIZE_CELL);
 	game_sound.play_sound("move");
       }
     }
-  }
 
-  if(mouse & SDL_BUTTON(SDL_BUTTON_MIDDLE)){
-    if(g.getCurrentpiece()->y_down_bloc()+SIZE_CELL*g.getCurrentlevel()<g.getGridHeight()*SIZE_CELL && !g.colision('d')){
-      g.getCurrentpiece()->move_down(g.getCurrentlevel()*SIZE_CELL);
-    }
-  }
-
-  if(mouse & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-    if(x <= g.getCurrentpiece()->x_left_bloc()){
-      if(!g.colision('l')){
-	g.getCurrentpiece()->move_left(SIZE_CELL);
-	game_sound.play_sound("move");
+    if(keys[SDLK_DOWN]){
+      if(g.getCurrentpiece()->y_down_bloc()+SIZE_CELL<g.getGridHeight()*SIZE_CELL && !g.colision('d')){
+	g.getCurrentpiece()->move_down(SIZE_CELL);
       }
-    }else if(x >= g.getCurrentpiece()->x_right_bloc()){
-      if(!g.colision('r')){
-	g.getCurrentpiece()->move_right(SIZE_CELL);
-	game_sound.play_sound("move");
-      }
-    }
-  }
-
-  if(keys[SDLK_LEFT]){
-    if(!g.colision('l')){
-      g.getCurrentpiece()->move_left(SIZE_CELL);
-      game_sound.play_sound("move");
-    }
-  }
-
-  if(keys[SDLK_KP_PLUS]){
-    game_sound.up_Volume();
-  }
-
-  if(keys[SDLK_KP_MINUS]){
-    game_sound.down_Volume();
-  }
-
-  if(keys[SDLK_RIGHT]){
-    if(!g.colision('r')){
-      g.getCurrentpiece()->move_right(SIZE_CELL);
-      game_sound.play_sound("move");
-    }
-  }
-
-  if(keys[SDLK_DOWN]){
-    if(g.getCurrentpiece()->y_down_bloc()+SIZE_CELL<g.getGridHeight()*SIZE_CELL && !g.colision('d')){
-      g.getCurrentpiece()->move_down(SIZE_CELL);
     }
   }
 }
@@ -184,14 +185,14 @@ bool play(string playername){
 	  switch(event.button.button){
 	  case SDL_BUTTON_WHEELUP:{
 	    tmp = f.create(concat("shape",g.getCurrentpiece()->next()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
-	    if(!g.rotation_colision(tmp)){
+	    if(!g.rotation_colision(tmp) && !g.is_paused()){
 	      g.setCurrentpiece(tmp);
 	      game_sound.play_sound("turn");
 	    }
 	    break;}
 	  case SDL_BUTTON_WHEELDOWN:{
 	    tmp = f.create(concat("shape",g.getCurrentpiece()->previous()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
-	    if(!g.rotation_colision(tmp)){
+	    if(!g.rotation_colision(tmp) && !g.is_paused()){
 	      g.setCurrentpiece(tmp);
 	      game_sound.play_sound("turn");
 	    }
@@ -215,13 +216,13 @@ bool play(string playername){
 	    break;
 	  case SDLK_UP:{
 	    tmp = f.create(concat("shape",g.getCurrentpiece()->next()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
-	    if(!g.rotation_colision(tmp)){
+	    if(!g.rotation_colision(tmp) && !g.is_paused()){
 	      g.setCurrentpiece(tmp);
 	    }
 	    break;}
 	  case SDLK_KP1:
 	    tmp = f.create(concat("shape",g.getCurrentpiece()->previous()),g.getCurrentpiece()->new_shape().first,g.getCurrentpiece()->new_shape().second,SIZE_CELL);
-	    if(!g.rotation_colision(tmp)){
+	    if(!g.rotation_colision(tmp) && !g.is_paused()){
 	      g.setCurrentpiece(tmp);
 	      game_sound.play_sound("turn");
 	    }

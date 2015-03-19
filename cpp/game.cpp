@@ -118,7 +118,6 @@ void Game::setNextpiece(AbstractShape * s){
 
 Game::~Game(){
   delete currentpiece;
-  delete nextpiece;
   save_score("save/save.txt");
 }
 
